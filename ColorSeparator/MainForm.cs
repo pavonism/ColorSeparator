@@ -1,6 +1,7 @@
 using ChartControl;
 using ImageProcessor;
 using SurfaceFiller.Components;
+using System.Drawing.Imaging;
 
 namespace ColorSeparator
 {
@@ -9,6 +10,8 @@ namespace ColorSeparator
         private TableLayoutPanel mainTableLayout = new();
         private Toolbar toolbar = new();
         private Charter charter = new(FormConstants.ChartSize, FormConstants.ChartMargin);
+        private ImageMng imageMng;
+        private PictureBox imagePreview = new() { Dock = DockStyle.Fill };
 
         public MainForm()
         {
@@ -16,7 +19,7 @@ namespace ColorSeparator
             InitializeToolbar();
             ArrangeComponents();
 
-            CMYKCurveGenerator.GenerateSample(this.charter);
+            this.imageMng = new(this.charter);
         }
 
         private void InitializeComponent()
@@ -36,6 +39,36 @@ namespace ColorSeparator
             this.toolbar.AddRadioOption(YellowRadioHandler, Labels.Yellow);
             this.toolbar.AddRadioOption(BlackRadioHandler, Labels.Black);
             this.toolbar.AddOption(ShowAllCurvesHandler, Labels.ShowAllCurves);
+            this.toolbar.AddButton(LoadImageHandler, "F");
+            this.toolbar.AddButton(GenerateMagentaHandler, "M");
+        }
+
+        private void GenerateMagentaHandler(object? sender, EventArgs e)
+        {
+            var img = this.imageMng.GenerateMagentaImage();
+            this.imagePreview.Image = img;
+        }
+
+        private void LoadImageHandler(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                var codecs = ImageCodecInfo.GetImageEncoders();
+                var codecFilter = "Image Files|";
+                foreach (var codec in codecs)
+                {
+                    codecFilter += codec.FilenameExtension + ";";
+                }
+                openFileDialog.Filter = codecFilter;
+
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.imagePreview.Image = this.imageMng.LoadImage(openFileDialog.FileName);
+                }
+            }
         }
 
         private void ArrangeComponents()
@@ -43,8 +76,16 @@ namespace ColorSeparator
             this.mainTableLayout.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
             this.mainTableLayout.ColumnCount = FormConstants.MainFormColumnCount;
 
+            var mainPanelTable = new TableLayoutPanel()
+            {
+                Dock = DockStyle.Fill,
+            };
+            mainPanelTable.Controls.Add(this.charter, 0, 0);
+            mainPanelTable.Controls.Add(this.imagePreview, 0, 1);
+
+
             this.mainTableLayout.Controls.Add(this.toolbar, 0, 0);
-            this.mainTableLayout.Controls.Add(this.charter, 1, 0);
+            this.mainTableLayout.Controls.Add(mainPanelTable, 1, 0);
             this.mainTableLayout.Dock = DockStyle.Fill;
             this.Controls.Add(mainTableLayout);
         }

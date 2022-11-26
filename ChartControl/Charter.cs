@@ -12,6 +12,8 @@ namespace ChartControl
         private int margin;
         private object? selectedCurve;
 
+        public event Action<object>? CurveChanged;
+
         private bool showAll;
         public bool ShowAll
         {
@@ -90,6 +92,16 @@ namespace ChartControl
             base.Refresh();
         }
 
+        public float GetCurveValueAt(object curveId, float k)
+        {
+            if(this.curves.TryGetValue(curveId, out var curve))
+            {
+                return curve.GetValueAt(k);
+            }
+
+            return float.NaN;
+        }
+
         private void DrawMargin()
         {
             using (var g = Graphics.FromImage(bitmap))
@@ -98,10 +110,17 @@ namespace ChartControl
             }
         }
 
-        public void AddCurve(object curveId, Curve curve)
+        public void AddCurve(Curve curve)
         {
-            this.curves.Add(curveId, curve);
+            this.curves.Add(curve.Id, curve);
+            curve.CurveChanged += CurveChangedHandler;
         }
+
+        private void CurveChangedHandler(object curveId)
+        {
+            this.CurveChanged?.Invoke(curveId);
+        }
+
 
         public void HideAllConstructionPoints()
         {
@@ -135,6 +154,11 @@ namespace ChartControl
             {
                 g.Clear(Color.LightGray);
             }
+        }
+
+        public void Reset()
+        {
+            this.curves.Clear();
         }
     }
 }

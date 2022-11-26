@@ -14,7 +14,7 @@ namespace ImageProcessor
 
             for (int i = 0; i < colors.Length; i++)
             {
-                charter.AddCurve((CurveId)i, new Curve(startPoint, endPoint, colors[i]));
+                charter.AddCurve(new Curve((CurveId)i, startPoint, endPoint, colors[i]));
             }
 
             charter.Refresh();
