@@ -20,6 +20,7 @@ namespace ColorSeparator
             ArrangeComponents();
 
             this.imageMng = new(this.charter);
+            this.imageMng.ImageChanged += ImageChangedHandler;
         }
 
         private void InitializeComponent()
@@ -39,36 +40,7 @@ namespace ColorSeparator
             this.toolbar.AddRadioOption(YellowRadioHandler, Labels.Yellow);
             this.toolbar.AddRadioOption(BlackRadioHandler, Labels.Black);
             this.toolbar.AddOption(ShowAllCurvesHandler, Labels.ShowAllCurves);
-            this.toolbar.AddButton(LoadImageHandler, "F");
-            this.toolbar.AddButton(GenerateMagentaHandler, "M");
-        }
-
-        private void GenerateMagentaHandler(object? sender, EventArgs e)
-        {
-            var img = this.imageMng.GenerateMagentaImage();
-            this.imagePreview.Image = img;
-        }
-
-        private void LoadImageHandler(object? sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.RestoreDirectory = true;
-
-                var codecs = ImageCodecInfo.GetImageEncoders();
-                var codecFilter = "Image Files|";
-                foreach (var codec in codecs)
-                {
-                    codecFilter += codec.FilenameExtension + ";";
-                }
-                openFileDialog.Filter = codecFilter;
-
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    this.imagePreview.Image = this.imageMng.LoadImage(openFileDialog.FileName);
-                }
-            }
+            this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
         }
 
         private void ArrangeComponents()
@@ -91,25 +63,54 @@ namespace ColorSeparator
         }
 
         #region Handlers
+        private void ImageChangedHandler()
+        {
+            this.imagePreview.Refresh();
+        }
         private void CyanRadioHandler(object? sender, EventArgs e)
         {
             this.charter.SelectCurve(CurveId.Cyan);
+            this.imagePreview.Image = this.imageMng.GenerateSeparateImage(CurveId.Cyan);
         }
         private void MagentaRadioHandler(object? sender, EventArgs e)
         {
             this.charter.SelectCurve(CurveId.Magenta);
+            this.imagePreview.Image = this.imageMng.GenerateSeparateImage(CurveId.Magenta);
         }
         private void YellowRadioHandler(object? sender, EventArgs e)
         {
             this.charter.SelectCurve(CurveId.Yellow);
+            this.imagePreview.Image = this.imageMng.GenerateSeparateImage(CurveId.Yellow);
         }
         private void BlackRadioHandler(object? sender, EventArgs e)
         {
             this.charter.SelectCurve(CurveId.Black);
+            this.imagePreview.Image = this.imageMng.GenerateSeparateImage(CurveId.Black);
         }
         private void ShowAllCurvesHandler(object? sender, EventArgs e)
         {
             this.charter.ShowAll = !this.charter.ShowAll;
+        }
+        private void LoadImageHandler(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                var codecs = ImageCodecInfo.GetImageEncoders();
+                var codecFilter = "Image Files|";
+                foreach (var codec in codecs)
+                {
+                    codecFilter += codec.FilenameExtension + ";";
+                }
+                openFileDialog.Filter = codecFilter;
+
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.imagePreview.Image = this.imageMng.LoadImage(openFileDialog.FileName);
+                }
+            }
         }
         #endregion
     }

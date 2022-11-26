@@ -99,7 +99,7 @@ namespace ChartControl
                 return curve.GetValueAt(k);
             }
 
-            return float.NaN;
+            return 0;
         }
 
         private void DrawMargin()

@@ -8,7 +8,10 @@ namespace ImageProcessor
         Bitmap? image;
         float retraction = 1;
         Cmyk[,] cmykRepresentation;
-        Bitmap magentaImgage;
+        Bitmap currentImage;
+        CurveId currentColor = CurveId.Cyan;
+
+        public event Action? ImageChanged;
 
         public ImageMng(Charter colorCurves)
         {
@@ -19,6 +22,9 @@ namespace ImageProcessor
 
         private void CurveChangedHandler(object obj)
         {
+            CalculateCmykRepresentation();
+            GenerateSeparateImage(this.currentColor);
+            this.ImageChanged?.Invoke();
         }
 
         public Bitmap LoadImage(string path)
@@ -27,7 +33,9 @@ namespace ImageProcessor
             this.cmykRepresentation = new Cmyk[this.image.Width, this.image.Height];
 
             this.colorCurves.Reset();
+            CMYKCurveGenerator.GenerateSample(colorCurves);
             CalculateCmykRepresentation();
+            this.currentImage = new Bitmap(this.image.Width, this.image.Height);
             return this.image;
         }
 
@@ -45,30 +53,46 @@ namespace ImageProcessor
             }
         }
 
-        public Bitmap GenerateMagentaImage()
+        private Color GetCmykColorInRgb(int x, int y, CurveId curve)
+        {
+            switch (curve)
+            {
+                case CurveId.Cyan:
+                    return CyanToRgb(cmykRepresentation[x, y].C);
+                case CurveId.Magenta:
+                    return MagentaToRgb(cmykRepresentation[x, y].M);
+                case CurveId.Yellow:
+                    return YellowToRgb(cmykRepresentation[x, y].Y);
+                case CurveId.Black:
+                    return BlackToRgb(cmykRepresentation[x, y].K);
+            }
+
+            return Color.Empty;
+        }
+
+        public Bitmap? GenerateSeparateImage(CurveId curve)
         {
             if (this.image == null)
-                throw new NullReferenceException();
+                return null;
 
-            this.magentaImgage = new Bitmap(this.image.Width, this.image.Height);
+            this.currentColor = curve;
 
             for (int x = 0; x < this.image.Width; x++)
             {
                 for (int y = 0; y < this.image.Height; y++)
                 {
-                    var color = MagentaToRgb(cmykRepresentation[x, y].M);
-                    this.magentaImgage.SetPixel(x, y, color);
+                    var color = GetCmykColorInRgb(x, y, curve);
+                    this.currentImage.SetPixel(x, y, color);
                 }
             }
 
-            return this.magentaImgage;
+            return this.currentImage;
         }
 
         public Cmyk RgbToCmyk(Color color)
         {
             var cmy = ConvertToCmy(color);
-            CmyToCmyk(cmy);
-            return cmy;
+            return CmyToCmyk(cmy);
         }
 
         public Cmyk ConvertToCmy(Color color)
@@ -81,13 +105,19 @@ namespace ImageProcessor
             };
         }
 
-        public void CmyToCmyk(Cmyk cmyk)
+        public Cmyk CmyToCmyk(Cmyk cmyk)
         {
             var kprime = cmyk.Min * retraction;
-            cmyk.C = cmyk.C - kprime + colorCurves.GetCurveValueAt(CurveId.Cyan, kprime);
-            cmyk.M = cmyk.M - kprime + colorCurves.GetCurveValueAt(CurveId.Magenta, kprime);
-            cmyk.Y = cmyk.Y - kprime + colorCurves.GetCurveValueAt(CurveId.Yellow, kprime);
-            cmyk.K = colorCurves.GetCurveValueAt(CurveId.Black, kprime);
+            var res = new Cmyk()
+            {
+                C = cmyk.C - kprime + colorCurves.GetCurveValueAt(CurveId.Cyan, kprime),
+                M = cmyk.M - kprime + colorCurves.GetCurveValueAt(CurveId.Magenta, kprime),
+                Y = cmyk.Y - kprime + colorCurves.GetCurveValueAt(CurveId.Yellow, kprime),
+                K = colorCurves.GetCurveValueAt(CurveId.Black, kprime)
+            };
+
+            res.CutValues();
+            return res;
         }
 
         public Color MagentaToRgb(float magentaColor)
@@ -104,8 +134,8 @@ namespace ImageProcessor
         {
             return Color.FromArgb
             (
-                1,
-                1,
+                255,
+                255,
                 (int)((1 - yellowColor) * 255)
             );
         }
@@ -115,8 +145,8 @@ namespace ImageProcessor
             return Color.FromArgb
             (
                 (int)((1 - cyanColor) * 255),
-                1,
-                1
+                255,
+                255
             );
         }
 

@@ -1,4 +1,6 @@
 ﻿
+using System.Drawing;
+
 namespace ChartControl
 {
     internal static class BezierDrawer
@@ -30,6 +32,21 @@ namespace ChartControl
                 if (0 < x && x < bitmap.Width && 0 < y && y < bitmap.Height)
                     bitmap.SetPixel(x, bitmap.Width - y, color);
             }
+        }
+
+        public static float[] CalculateValues(PointF[] coefficients)
+        {
+            float[] res = new float[100];
+
+            for (float t = 0; t <= 1; t += DrawingStep)
+            {
+                float x = coefficients[0].X + t * (coefficients[1].X + t * (coefficients[2].X + (coefficients[3].X * t)));
+                float y = coefficients[0].Y + t * (coefficients[1].Y + t * (coefficients[2].Y + (coefficients[3].Y * t)));
+
+                res[(int)(100 * x)] = Math.Min(Math.Max(0, y), 1f);
+            }
+
+            return res;
         }
     }
 }

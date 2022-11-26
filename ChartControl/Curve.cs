@@ -6,6 +6,7 @@ namespace ChartControl
         public object Id { get; private set; }
         public ControlPoint[] ControlPoints { get; private set; } = new ControlPoint[Constants.ControlPointsCount];
         public PointF[] Coefficients { get; private set; } = new PointF[Constants.ControlPointsCount];
+        private float[] values;
         public Color Color { get; private set; }
         public bool ShowControlPoints { get; set; } = false;
         public bool Visible { get; set; } = true;
@@ -18,6 +19,7 @@ namespace ChartControl
             ControlPoints = controlPoints;
             Color = color;
             CalculateCoefficients();
+            this.values = BezierDrawer.CalculateValues(Coefficients);
         }
 
         public Curve(object id, PointF from, PointF to, Color color)
@@ -34,10 +36,13 @@ namespace ChartControl
 
             Color = color;
             CalculateCoefficients();
+            this.values = BezierDrawer.CalculateValues(Coefficients);
         }
 
         private void PointMovedHandler(PointMovedEventArguments eventArguments)
         {
+            CalculateCoefficients();
+            this.values = BezierDrawer.CalculateValues(Coefficients);
             CalculateCoefficients();
         }
 
@@ -83,7 +88,7 @@ namespace ChartControl
 
         public float GetValueAt(float k)
         {
-            return 1f;
+            return this.values[(int)Math.Min(100*k, 99)];
         }
     }
 }

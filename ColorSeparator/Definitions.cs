@@ -23,7 +23,10 @@ namespace ColorSeparator
     {
         public const string ProgramTitle = "ColorSeperator";
     }
-
+    public static class Glyphs
+    {
+        public const string File = "\U0001F4C2";
+    }
 
     public static class Labels
     {
