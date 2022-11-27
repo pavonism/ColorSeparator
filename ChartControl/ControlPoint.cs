@@ -37,11 +37,11 @@ namespace ChartControl
             PointMoved?.Invoke(eventArguments);
         }
 
-        internal void Render(Bitmap bitmap, int offset, float scale)
+        internal void Render(DirectBitmap bitmap, int offset, float scale)
         {
             Scale = scale;
 
-            using(var g = Graphics.FromImage(bitmap)) 
+            using(var g = Graphics.FromImage(bitmap.Bitmap)) 
             {
                 g.DrawEllipse
                 (

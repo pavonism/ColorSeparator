@@ -1,11 +1,12 @@
 ﻿using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 
 namespace ChartControl
 {
     public partial class Charter : PictureBox
     {
-        private readonly Bitmap bitmap;
+        private DirectBitmap directBitmap;
         private readonly Dictionary<object, Curve> curves;
         private ControlPoint? selectedPoint;
         private int chartSize;
@@ -13,6 +14,7 @@ namespace ChartControl
         private object? selectedCurve;
 
         public event Action<object>? CurveChanged;
+        private System.Windows.Forms.Timer CurveChangedTimer = new();
 
         private bool showAll;
         public bool ShowAll
@@ -32,16 +34,30 @@ namespace ChartControl
             }
         }
 
-        public Charter(int size, int margin)
+        public Charter(int margin)
         {
-            this.chartSize = size - margin * 2;
             this.margin = margin;
-            this.Width = size;
-            this.Height = size;
-            this.bitmap = new(size, size);
             this.curves = new();
 
-            this.Image = this.bitmap;
+            this.CurveChangedTimer.Tick += CurveChangedTimerTickHandler;
+            this.CurveChangedTimer.Interval = 16;
+        }
+
+        private void CurveChangedTimerTickHandler(object? sender, EventArgs e)
+        {
+            this.CurveChanged?.Invoke(this.selectedCurve!);
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            this.directBitmap?.Dispose();
+            int size = Math.Min(this.Width, this.Height);
+            this.directBitmap = new(size, size);
+            this.chartSize = size - margin * 2;
+
+            this.Image = this.directBitmap.Bitmap;
             Refresh();
         }
 
@@ -66,6 +82,8 @@ namespace ChartControl
 
             if(this.selectedPoint != null)
             {
+                this.CurveChangedTimer.Stop();
+                this.CurveChangedTimer.Start();
                 var newX = Math.Min(Math.Max(e.X, margin), chartSize + margin) - margin;
                 var newY = Math.Min(Math.Max(2*margin + chartSize - e.Y, margin), chartSize + margin) - margin;
 
@@ -85,7 +103,7 @@ namespace ChartControl
 
             foreach (var curve in this.curves.Values)
             {
-                curve.Render(this.bitmap, chartSize, margin);
+                curve.Render(this.directBitmap, chartSize, margin);
             }
 
             DrawMargin();
@@ -104,7 +122,7 @@ namespace ChartControl
 
         private void DrawMargin()
         {
-            using (var g = Graphics.FromImage(bitmap))
+            using (var g = Graphics.FromImage(directBitmap.Bitmap))
             {
                 g.DrawRectangle(Pens.Black, margin, margin, chartSize, chartSize);
             }
@@ -150,7 +168,7 @@ namespace ChartControl
 
         public void Clear()
         {
-            using (var g = Graphics.FromImage(bitmap))
+            using (var g = Graphics.FromImage(directBitmap.Bitmap))
             {
                 g.Clear(Color.LightGray);
             }

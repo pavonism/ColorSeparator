@@ -19,7 +19,6 @@ namespace ChartControl
             ControlPoints = controlPoints;
             Color = color;
             CalculateCoefficients();
-            this.values = BezierDrawer.CalculateValues(Coefficients);
         }
 
         public Curve(object id, PointF from, PointF to, Color color)
@@ -36,24 +35,22 @@ namespace ChartControl
 
             Color = color;
             CalculateCoefficients();
-            this.values = BezierDrawer.CalculateValues(Coefficients);
         }
 
         private void PointMovedHandler(PointMovedEventArguments eventArguments)
         {
-            CalculateCoefficients();
-            this.values = BezierDrawer.CalculateValues(Coefficients);
             CalculateCoefficients();
         }
 
         private void CalculateCoefficients()
         {
             Coefficients = BezierDrawer.CalculateCoefficients(ControlPoints);
+            this.values = BezierDrawer.CalculateValues(Coefficients);
 
             this.CurveChanged?.Invoke(Id);
         }
 
-        internal void Render(Bitmap bitmap, float scale, int offset)
+        internal void Render(DirectBitmap bitmap, float scale, int offset)
         {
             foreach (var point in ControlPoints)
             {

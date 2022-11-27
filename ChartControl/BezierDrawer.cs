@@ -22,7 +22,7 @@ namespace ChartControl
             return coefficients;
         }
 
-        public static void Draw(PointF[] Coefficients, Bitmap bitmap, Color color, int offset, float scale)
+        public static void Draw(PointF[] Coefficients, DirectBitmap bitmap, Color color, int offset, float scale)
         {
             for (float t = 0; t <= 1; t += DrawingStep)
             {
@@ -43,7 +43,7 @@ namespace ChartControl
                 float x = coefficients[0].X + t * (coefficients[1].X + t * (coefficients[2].X + (coefficients[3].X * t)));
                 float y = coefficients[0].Y + t * (coefficients[1].Y + t * (coefficients[2].Y + (coefficients[3].Y * t)));
 
-                res[(int)(100 * x)] = Math.Min(Math.Max(0, y), 1f);
+                res[(int)Math.Min(100 * x, 99)] = Math.Min(Math.Max(0, y), 1f);
             }
 
             return res;
