@@ -1,6 +1,7 @@
 using ChartControl;
-using ColorSeparatorApp;
+using ColorSeparatorApp.Components;
 using ImageProcessor;
+using ImageProcessor.Colors;
 using SurfaceFiller.Components;
 using System.Drawing.Imaging;
 
@@ -8,62 +9,46 @@ namespace ColorSeparator
 {
     public partial class MainForm : Form
     {
+        #region Managers
+        private ImageMng imageMng;
+        #endregion
+
+        #region Controls
         private TableLayoutPanel mainTableLayout = new();
         private Toolbar toolbar = new();
-        private Charter charter = new(FormConstants.ChartMargin) { Dock = DockStyle.Fill };
-        private ImageMng imageMng;
-        private PictureSampler imagePreview = new() { Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.StretchImage };
-        private SampleViewer cyanPreview = new() { Dock = DockStyle.Fill };
-        private SampleViewer magentaPreview = new() { Dock = DockStyle.Fill };
-        private SampleViewer yellowPreview = new() { Dock = DockStyle.Fill };
-        private SampleViewer blackPreview = new() { Dock = DockStyle.Fill };
+        private Charter charter = new(FormConstants.ChartMargin) 
+        { 
+            Dock = DockStyle.Fill 
+        };
+        private PictureSampler imagePreview = new() 
+        { 
+            Dock = DockStyle.Fill, 
+            SizeMode = PictureBoxSizeMode.StretchImage 
+        };
+        private SampleViewer cyanPreview = new() 
+        { 
+            Dock = DockStyle.Fill 
+        };
+        private SampleViewer magentaPreview = new() 
+        { 
+            Dock = DockStyle.Fill 
+        };
+        private SampleViewer yellowPreview = new() 
+        { 
+            Dock = DockStyle.Fill 
+        };
+        private SampleViewer blackPreview = new() 
+        { 
+            Dock = DockStyle.Fill 
+        };
+        #endregion Controls
 
-
+        #region Initialize
         public MainForm()
         {
             InitializeComponent();
             InitializeToolbar();
             ArrangeComponents();
-        }
-
-        private void ParametersChangedHandler()
-        {
-            ReloadAllSamples();
-        }
-
-        private void CurveChangedHandler(object obj)
-        {
-            CurveId curveId = (CurveId)obj;
-
-            switch (curveId)
-            {
-                case CurveId.Cyan:
-                    ReloadSample(cyanPreview, CurveId.Cyan);
-                    break;
-                case CurveId.Magenta:
-                    ReloadSample(magentaPreview, CurveId.Magenta);
-                    break;
-                case CurveId.Yellow:
-                    ReloadSample(yellowPreview, CurveId.Yellow);
-                    break;
-                case CurveId.Black:
-                    ReloadSample(blackPreview, CurveId.Black);
-                    break;
-            }
-        }
-
-        private void ReloadSample(SampleViewer sampleViewer, CurveId curveId)
-        {
-            this.imageMng.RunGenerateSeparateImageAsync(sampleViewer, curveId);
-            //this.imageMng.GenerateSeparateImage(sampleViewer, curveId);
-        }
-
-        private void ReloadAllSamples()
-        {
-            ReloadSample(cyanPreview, CurveId.Cyan);
-            ReloadSample(magentaPreview, CurveId.Magenta);
-            ReloadSample(yellowPreview, CurveId.Yellow);
-            ReloadSample(blackPreview, CurveId.Black);
         }
 
         private void InitializeComponent()
@@ -74,7 +59,6 @@ namespace ColorSeparator
 
             this.imageMng = new(this.imagePreview, this.charter);
             this.imageMng.ParametersChanged += ParametersChangedHandler;
-            //this.charter.CurveChanged += CurveChangedHandler;
         }
 
         private void InitializeToolbar()
@@ -88,18 +72,8 @@ namespace ColorSeparator
             this.toolbar.AddRadioOption(BlackRadioHandler, Labels.Black);
             this.toolbar.AddOption(ShowAllCurvesHandler, Labels.ShowAllCurves);
             this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
-            this.toolbar.AddSlider(ThreadsSlider, "T", 0.5f);
-            this.toolbar.AddSlider(RetractionSlider, "Retraction", 1f);
-        }
-
-        private void RetractionSlider(float value)
-        {
-            this.imageMng.Retraction = value;
-        }
-
-        private void ThreadsSlider(float value)
-        {
-            this.imageMng.RenderThreads = (int)(value * 100);
+            this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
+            this.toolbar.AddSlider(RetractionSliderHandler, "Retraction", 1f);
         }
 
         private void ArrangeComponents()
@@ -134,6 +108,46 @@ namespace ColorSeparator
             this.mainTableLayout.Dock = DockStyle.Fill;
             this.Controls.Add(mainTableLayout);
         }
+
+        #endregion Initialize
+
+        #region Charts
+        private void ParametersChangedHandler(CurveId? curve, Cmyk[,] cmykRepresentation)
+        {
+            if (curve == null)
+                ReloadAllSamples(cmykRepresentation);
+            else
+                switch (curve)
+                {
+                    case CurveId.Cyan:
+                        ReloadSample(cyanPreview, CurveId.Cyan, cmykRepresentation);
+                        break;
+                    case CurveId.Magenta:
+                        ReloadSample(magentaPreview, CurveId.Magenta, cmykRepresentation);
+                        break;
+                    case CurveId.Yellow:
+                        ReloadSample(yellowPreview, CurveId.Yellow, cmykRepresentation);
+                        break;
+                    case CurveId.Black:
+                        ReloadSample(blackPreview, CurveId.Black, cmykRepresentation);
+                        break;
+                }
+
+        }
+
+        private void ReloadSample(SampleViewer sampleViewer, CurveId curveId, Cmyk[,]? cmykRepresentation)
+        {
+            this.imageMng.RunGenerateSeparateImageAsync(sampleViewer, curveId, cmykRepresentation);
+        }
+
+        private void ReloadAllSamples(Cmyk[,]? cmykRepresentation = null)
+        {
+            ReloadSample(cyanPreview, CurveId.Cyan, cmykRepresentation);
+            ReloadSample(magentaPreview, CurveId.Magenta, cmykRepresentation);
+            ReloadSample(yellowPreview, CurveId.Yellow, cmykRepresentation);
+            ReloadSample(blackPreview, CurveId.Black, cmykRepresentation);
+        }
+        #endregion
 
         #region Handlers
         private void CyanRadioHandler(object? sender, EventArgs e)
@@ -177,6 +191,15 @@ namespace ColorSeparator
                     ReloadAllSamples();
                 }
             }
+        }
+        private void RetractionSliderHandler(float value)
+        {
+            this.imageMng.Retraction = value;
+        }
+
+        private void ThreadsSliderHandler(float value)
+        {
+            this.imageMng.RenderThreads = (int)(value * 100);
         }
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿namespace ImageProcessor
+﻿namespace ImageProcessor.Interfaces
 {
     public interface ISampleProvider : ISampleViewer
     {

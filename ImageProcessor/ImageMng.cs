@@ -1,9 +1,13 @@
 ﻿using ChartControl;
+using FastBitmap;
+using ImageProcessor.Colors;
+using ImageProcessor.Interfaces;
 
 namespace ImageProcessor
 {
     public class ImageMng
     {
+        #region Fields and Properties
         private ISampleProvider sampleProvider;
         private Charter colorCurves;
         private DirectBitmap? image;
@@ -22,22 +26,26 @@ namespace ImageProcessor
                 RunRegenerateImageAsync();
             }
         }
+        #endregion Fields and Properties
 
-        public event Action? ParametersChanged;
+        #region Events
+        public event Action<CurveId?, Cmyk[,]>? ParametersChanged;
 
-        public ImageMng(ISampleProvider sampleProvider, Charter colorCurves)
+        private void SendParametersChanged(CurveId? curve = null)
         {
-            this.sampleProvider = sampleProvider;
-            this.colorCurves = colorCurves;
-            this.colorCurves.CurveChanged += CurveChangedHandler;
-            this.sampleProvider.SampleChanged += SampleChangedHandler;
-            this.sampleProvider.SampleSizeChanged += SampleSizeChanged;
-        }
+            if (this.image == null)
+                return;
 
+            Cmyk[,] currentCmykRepresentation = (Cmyk[,])this.cmykRepresentation.Clone();
+            this.ParametersChanged?.Invoke(curve, currentCmykRepresentation);
+        }
+        #endregion Events
+
+        #region Event Handlers
         private void SampleSizeChanged(Bitmap sample)
         {
             InitializeSamples(sample);
-            this.ParametersChanged?.Invoke();
+            SendParametersChanged();
         }
 
         private void SampleChangedHandler(Bitmap sample)
@@ -49,27 +57,18 @@ namespace ImageProcessor
 
         private void CurveChangedHandler(object obj)
         {
-            RunRegenerateImageAsync();
+            RunRegenerateImageAsync((CurveId)obj);
         }
+        #endregion Event Handlers
 
-        private void RunRegenerateImageAsync()
+        #region Initializing
+        public ImageMng(ISampleProvider sampleProvider, Charter colorCurves)
         {
-            if (!isGenerating)
-            {
-                isGenerating = true;
-                ReGenerateImageAsync();
-            }
-        }
-
-        private Task ReGenerateImageAsync()
-        {
-            return Task.Run(() =>
-            {
-                CalculateCmykRepresentation();
-                this.ParametersChanged?.Invoke();
-                GenerateImage();
-                isGenerating = false;
-            });
+            this.sampleProvider = sampleProvider;
+            this.colorCurves = colorCurves;
+            this.colorCurves.CurveChanged += CurveChangedHandler;
+            this.sampleProvider.SampleChanged += SampleChangedHandler;
+            this.sampleProvider.SampleSizeChanged += SampleSizeChanged;
         }
 
         private void InitializeSamples(Bitmap sample)
@@ -81,39 +80,30 @@ namespace ImageProcessor
             CalculateCmykRepresentation();
             GenerateImage();
         }
+        #endregion
 
-        private void CalculateCmykRepresentation()
+        #region Generating Images
+        private void RunRegenerateImageAsync(CurveId? curve = null)
         {
-            if (this.image == null)
-                return;
-
-            for (int x = 0; x < this.image.Width; x++)
+            if (!isGenerating)
             {
-                for (int y = 0; y < this.image.Height; y++)
-                {
-                    this.cmykRepresentation[x, y] = RgbToCmyk(this.image.GetPixel(x, y));
-                }
+                isGenerating = true;
+                ReGenerateImageAsync(curve);
             }
         }
 
-        private Color GetCmykColorInRgb(int x, int y, CurveId curve)
+        private Task ReGenerateImageAsync(CurveId? curve)
         {
-            switch (curve)
+            return Task.Run(() =>
             {
-                case CurveId.Cyan:
-                    return CyanToRgb(cmykRepresentation[x, y].C);
-                case CurveId.Magenta:
-                    return MagentaToRgb(cmykRepresentation[x, y].M);
-                case CurveId.Yellow:
-                    return YellowToRgb(cmykRepresentation[x, y].Y);
-                case CurveId.Black:
-                    return BlackToRgb(cmykRepresentation[x, y].K);
-            }
-
-            return Color.Empty;
+                CalculateCmykRepresentation();
+                SendParametersChanged(curve);
+                GenerateImage();
+                isGenerating = false;
+            });
         }
 
-        private Task GeneratePixelsAsync(int start, int step, DirectBitmap bitmap, CurveId? curve = null)
+        private Task GeneratePixelsAsync(int start, int step, DirectBitmap bitmap, Cmyk[,] cmykRepresentation, CurveId? curve = null)
         {
             return Task.Run(
                 () =>
@@ -123,7 +113,7 @@ namespace ImageProcessor
                         for (int y = 0; y < bitmap.Height; y++)
                         {
                             
-                            var color = curve.HasValue ? GetCmykColorInRgb(x, y, curve.Value) : CmykToRgb(cmykRepresentation[x, y]);
+                            var color = curve.HasValue ? GetCmykColorInRgb(x, y, curve.Value, cmykRepresentation) : CmykToRgb(cmykRepresentation[x, y]);
                             bitmap.SetPixel(x, y, color);
                         }
                     }
@@ -146,32 +136,32 @@ namespace ImageProcessor
 
             for (int i = 0; i < this.RenderThreads; i++)
             {
-                tasks.Add(GeneratePixelsAsync(i * rowsPerThread, rowsPerThread, currentImage));
+                tasks.Add(GeneratePixelsAsync(i * rowsPerThread, rowsPerThread, currentImage, this.cmykRepresentation));
             }
 
             Task.WaitAll(tasks.ToArray());
             this.sampleProvider.PutImage(currentImage);
         }
 
-        public void RunGenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve)
+        public void RunGenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve, Cmyk[,]? cmykRepresentation)
         {
             if (!imageIsGenerating[(int)curve])
             {
                 imageIsGenerating[(int)curve] = true;
-                GenerateSeparateImageAsync(sampleViewer, curve);
+                GenerateSeparateImageAsync(sampleViewer, curve, cmykRepresentation ?? this.cmykRepresentation);
             }
         }
 
-        public Task GenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve)
+        public Task GenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve, Cmyk[,] cmykRepresentation)
         {
             return Task.Run(() =>
             {
-                GenerateSeparateImage(sampleViewer, curve);
+                GenerateSeparateImage(sampleViewer, curve, cmykRepresentation);
                 imageIsGenerating[(int)curve] = false;
             });
         }
 
-        public void GenerateSeparateImage(ISampleViewer sampleViewer, CurveId curve)
+        public void GenerateSeparateImage(ISampleViewer sampleViewer, CurveId curve, Cmyk[,] cmykRepresentation)
         {
             if (this.image == null)
                 return;
@@ -182,11 +172,46 @@ namespace ImageProcessor
 
             for (int i = 0; i < this.RenderThreads; i++)
             {
-                tasks.Add(GeneratePixelsAsync(i * rowsPerThread, rowsPerThread, newImage, curve));
+                tasks.Add(GeneratePixelsAsync(i * rowsPerThread, rowsPerThread, newImage, cmykRepresentation, curve));
             }
 
             Task.WaitAll(tasks.ToArray());
             sampleViewer.PutImage(newImage);
+        }
+        #endregion Generating Images
+
+        #region Color Convertion
+        private void CalculateCmykRepresentation()
+        {
+            if (this.image == null)
+                return;
+
+            this.cmykRepresentation = new Cmyk[this.image.Width, this.image.Height];
+
+            for (int x = 0; x < this.image.Width; x++)
+            {
+                for (int y = 0; y < this.image.Height; y++)
+                {
+                    this.cmykRepresentation[x, y] = RgbToCmyk(this.image.GetPixel(x, y));
+                }
+            }
+        }
+
+        private Color GetCmykColorInRgb(int x, int y, CurveId curve, Cmyk[,] cmykRepresentation)
+        {
+            switch (curve)
+            {
+                case CurveId.Cyan:
+                    return CyanToRgb(cmykRepresentation[x, y].C);
+                case CurveId.Magenta:
+                    return MagentaToRgb(cmykRepresentation[x, y].M);
+                case CurveId.Yellow:
+                    return YellowToRgb(cmykRepresentation[x, y].Y);
+                case CurveId.Black:
+                    return BlackToRgb(cmykRepresentation[x, y].K);
+            }
+
+            return Color.Empty;
         }
 
         public Cmyk RgbToCmyk(Color color)
@@ -269,5 +294,7 @@ namespace ImageProcessor
                 (int)((1 - cmyk.Y) * (1 - cmyk.K) * 255)
             );
         }
+        #endregion Color Convertion
     }
+
 }

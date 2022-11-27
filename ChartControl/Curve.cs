@@ -1,4 +1,6 @@
 ﻿
+using FastBitmap;
+
 namespace ChartControl
 {
     public class Curve

@@ -1,4 +1,5 @@
 ﻿
+using FastBitmap;
 using System.Drawing;
 
 namespace ChartControl

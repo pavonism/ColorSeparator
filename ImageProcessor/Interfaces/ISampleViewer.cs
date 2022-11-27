@@ -1,5 +1,6 @@
-﻿
-namespace ImageProcessor
+﻿using FastBitmap;
+
+namespace ImageProcessor.Interfaces
 {
     public interface ISampleViewer
     {

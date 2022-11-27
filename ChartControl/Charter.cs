@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Security.Policy;
+﻿using FastBitmap;
 
 namespace ChartControl
 {
@@ -14,7 +12,6 @@ namespace ChartControl
         private object? selectedCurve;
 
         public event Action<object>? CurveChanged;
-        private System.Windows.Forms.Timer CurveChangedTimer = new();
 
         private bool showAll;
         public bool ShowAll
@@ -38,15 +35,6 @@ namespace ChartControl
         {
             this.margin = margin;
             this.curves = new();
-
-            this.CurveChangedTimer.Tick += CurveChangedTimerTickHandler;
-            this.CurveChangedTimer.Interval = 16;
-        }
-
-        private void CurveChangedTimerTickHandler(object? sender, EventArgs e)
-        {
-            this.CurveChanged?.Invoke(this.selectedCurve!);
-            this.CurveChangedTimer.Stop();
         }
 
         protected override void OnSizeChanged(EventArgs e)
@@ -83,8 +71,6 @@ namespace ChartControl
 
             if(this.selectedPoint != null)
             {
-                this.CurveChangedTimer.Stop();
-                this.CurveChangedTimer.Start();
                 var newX = Math.Min(Math.Max(e.X, margin), chartSize + margin) - margin;
                 var newY = Math.Min(Math.Max(2*margin + chartSize - e.Y, margin), chartSize + margin) - margin;
 

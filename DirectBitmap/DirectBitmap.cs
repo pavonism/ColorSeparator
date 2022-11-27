@@ -1,7 +1,7 @@
 ﻿using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace ImageProcessor
+namespace FastBitmap
 {
     public class DirectBitmap : IDisposable
     {

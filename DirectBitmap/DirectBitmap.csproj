@@ -7,9 +7,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ChartControl\ChartControl.csproj" />
-    <ProjectReference Include="..\DirectBitmap\DirectBitmap.csproj" />
-  </ItemGroup>
-
 </Project>

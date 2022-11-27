@@ -1,6 +1,6 @@
-﻿using ImageProcessor;
+﻿using ImageProcessor.Interfaces;
 
-namespace ColorSeparatorApp
+namespace ColorSeparatorApp.Components
 {
     internal class PictureSampler : SampleViewer, ISampleProvider
     {
@@ -11,19 +11,19 @@ namespace ColorSeparatorApp
 
         public PictureSampler()
         {
-            Sample = new(this.Width, this.Height);
+            Sample = new(Width, Height);
         }
 
         private Image? sourceImage;
         public Image? SourceImage
         {
-            get => this.sourceImage;
+            get => sourceImage;
             set
             {
-                this.sourceImage = value;
+                sourceImage = value;
 
                 GenerateSample();
-                this.SampleChanged?.Invoke(this.Sample);
+                SampleChanged?.Invoke(Sample);
             }
         }
 
@@ -32,31 +32,31 @@ namespace ColorSeparatorApp
             if (SourceImage == null)
                 return;
 
-            this.Sample.Dispose();
-            this.Sample = new(this.Width, this.Height);
+            Sample.Dispose();
+            Sample = new(Width, Height);
 
-            if(SourceImage.Width < SourceImage.Height)
+            if (SourceImage.Width < SourceImage.Height)
             {
-                float scale = (float)this.Height / SourceImage.Height;
+                float scale = (float)Height / SourceImage.Height;
                 var bitmapWidth = (int)(scale * SourceImage.Width);
 
-                var margin = (this.Width - bitmapWidth) / 2;
+                var margin = (Width - bitmapWidth) / 2;
 
-                using(var g = Graphics.FromImage(this.Sample))
+                using (var g = Graphics.FromImage(Sample))
                 {
-                    g.DrawImage(SourceImage, margin, 0, bitmapWidth, this.Height);
+                    g.DrawImage(SourceImage, margin, 0, bitmapWidth, Height);
                 }
-            } 
+            }
             else
             {
-                float scale = (float)this.Width / SourceImage.Width;
+                float scale = (float)Width / SourceImage.Width;
                 var bitmapHeight = (int)(scale * SourceImage.Height);
 
-                var margin = (this.Height - bitmapHeight) / 2;
+                var margin = (Height - bitmapHeight) / 2;
 
-                using (var g = Graphics.FromImage(this.Sample))
+                using (var g = Graphics.FromImage(Sample))
                 {
-                    g.DrawImage(SourceImage, 0, margin, this.Width, bitmapHeight);
+                    g.DrawImage(SourceImage, 0, margin, Width, bitmapHeight);
                 }
             }
 
@@ -67,7 +67,7 @@ namespace ColorSeparatorApp
             base.OnSizeChanged(e);
 
             GenerateSample();
-            this.SampleSizeChanged?.Invoke(this.Sample);
+            SampleSizeChanged?.Invoke(Sample);
         }
 
         public void LoadImage(string path)
