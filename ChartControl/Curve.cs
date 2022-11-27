@@ -1,29 +1,41 @@
 ﻿
 using FastBitmap;
+using System.Diagnostics.Metrics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ChartControl
 {
+    [Serializable]
     public class Curve
     {
-        public object Id { get; private set; }
+        public CurveId Id { get; private set; }
         public ControlPoint[] ControlPoints { get; private set; } = new ControlPoint[Constants.ControlPointsCount];
+
+        [JsonIgnore]
         public PointF[] Coefficients { get; private set; } = new PointF[Constants.ControlPointsCount];
         private float[] values;
         public Color Color { get; private set; }
         public bool ShowControlPoints { get; set; } = false;
         public bool Visible { get; set; } = true;
 
-        public event Action<object>? CurveChanged;
+        public event Action<CurveId>? CurveChanged;
 
-        public Curve(object id, ControlPoint[] controlPoints, Color color)
+        [JsonConstructor]
+        public Curve(CurveId id, ControlPoint[] controlPoints, Color color)
         {
             this.Id = id;
             ControlPoints = controlPoints;
             Color = color;
+
+            foreach (var point in controlPoints)
+            {
+                point.PointMoved += PointMovedHandler;
+            }
             CalculateCoefficients();
         }
 
-        public Curve(object id, PointF from, PointF to, Color color)
+        public Curve(CurveId id, PointF from, PointF to, Color color)
         {
             this.Id = id;
             var dx = (to.X - from.X) / (ControlPoints.Length - 1);

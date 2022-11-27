@@ -55,9 +55,9 @@ namespace ImageProcessor
             InitializeSamples(sample);
         }
 
-        private void CurveChangedHandler(object obj)
+        private void CurveChangedHandler(CurveId? obj)
         {
-            RunRegenerateImageAsync((CurveId)obj);
+            RunRegenerateImageAsync(obj);
         }
         #endregion Event Handlers
 

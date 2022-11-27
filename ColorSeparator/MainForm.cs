@@ -17,8 +17,8 @@ namespace ColorSeparator
         private TableLayoutPanel mainTableLayout = new();
         private Toolbar toolbar = new();
         private Charter charter = new(FormConstants.ChartMargin) 
-        { 
-            Dock = DockStyle.Fill 
+        {
+            Dock = DockStyle.Top,
         };
         private PictureSampler imagePreview = new() 
         { 
@@ -65,15 +65,50 @@ namespace ColorSeparator
         {
             this.toolbar.AddLabel(Resources.ProgramTitle);
             this.toolbar.AddDivider();
+            this.charter.Height = this.charter.Width = this.toolbar.Width;
+            this.toolbar.Controls.Add(this.charter);
+            this.toolbar.AddDivider();
             this.toolbar.CreateNewRadioBox();
             this.toolbar.AddRadioOption(CyanRadioHandler, Labels.Cyan, string.Empty, true);
             this.toolbar.AddRadioOption(MagentaRadioHandler, Labels.Megenta);
             this.toolbar.AddRadioOption(YellowRadioHandler, Labels.Yellow);
             this.toolbar.AddRadioOption(BlackRadioHandler, Labels.Black);
-            this.toolbar.AddOption(ShowAllCurvesHandler, Labels.ShowAllCurves);
+            this.toolbar.AddOptionToBox(ShowAllCurvesHandler, Labels.ShowAllCurves);
+            this.toolbar.AddDivider();
             this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
+            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
+            this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
             this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
             this.toolbar.AddSlider(RetractionSliderHandler, "Retraction", 1f);
+        }
+
+        private void LoadCurvesHandler(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                var codecs = ImageCodecInfo.GetImageEncoders();
+                var codecFilter = "Json Files(*.json)|*.json";
+                openFileDialog.Filter = codecFilter;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.charter.LoadFromFile(openFileDialog.FileName);
+                }
+            }
+        }
+
+        private void SaveCurvesHandler(object? sender, EventArgs e)
+        {
+            SaveFileDialog saveCurvesDialog = new SaveFileDialog();
+            saveCurvesDialog.Filter = "Json|*.json";
+            saveCurvesDialog.ShowDialog();
+
+            if (!string.IsNullOrEmpty(saveCurvesDialog.FileName))
+            {
+                this.charter.SaveAsFile(saveCurvesDialog.FileName);
+            }
         }
 
         private void ArrangeComponents()
@@ -87,21 +122,26 @@ namespace ColorSeparator
             };
 
             mainPanelTable.ColumnStyles.Clear();
-            mainPanelTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
-            mainPanelTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
+            mainPanelTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 66));
             mainPanelTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
 
-            mainPanelTable.RowStyles.Clear();
-            mainPanelTable.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            mainPanelTable.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            var cmykPanel = new TableLayoutPanel()
+            {
+                Dock = DockStyle.Fill,
+            };
 
-            mainPanelTable.Controls.Add(this.charter, 0, 0);
-            mainPanelTable.Controls.Add(this.imagePreview, 0, 1);
-            mainPanelTable.Controls.Add(this.cyanPreview, 1, 0);
-            mainPanelTable.Controls.Add(this.magentaPreview, 1, 1);
-            mainPanelTable.Controls.Add(this.yellowPreview, 2, 0);
-            mainPanelTable.Controls.Add(this.blackPreview, 2, 1);
+            cmykPanel.RowStyles.Clear();
+            cmykPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            cmykPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            cmykPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            cmykPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
 
+            mainPanelTable.Controls.Add(this.imagePreview, 0, 0);
+            cmykPanel.Controls.Add(this.cyanPreview, 0, 0);
+            cmykPanel.Controls.Add(this.magentaPreview, 0, 1);
+            cmykPanel.Controls.Add(this.yellowPreview, 0, 2);
+            cmykPanel.Controls.Add(this.blackPreview, 0, 3);
+            mainPanelTable.Controls.Add(cmykPanel, 1, 0);
 
             this.mainTableLayout.Controls.Add(this.toolbar, 0, 0);
             this.mainTableLayout.Controls.Add(mainPanelTable, 1, 0);

@@ -1,6 +1,6 @@
 ﻿using ChartControl;
 
-namespace ImageProcessor.Colors
+namespace ImageProcessor
 {
     public class CMYKCurveGenerator
     {
@@ -18,13 +18,5 @@ namespace ImageProcessor.Colors
 
             charter.Refresh();
         }
-    }
-
-    public enum CurveId
-    {
-        Cyan,
-        Magenta,
-        Yellow,
-        Black,
     }
 }

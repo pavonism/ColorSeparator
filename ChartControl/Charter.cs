@@ -1,17 +1,18 @@
 ﻿using FastBitmap;
+using System.Text.Json;
 
 namespace ChartControl
 {
     public partial class Charter : PictureBox
     {
         private DirectBitmap directBitmap;
-        private readonly Dictionary<object, Curve> curves;
+        private Dictionary<CurveId, Curve> curves;
         private ControlPoint? selectedPoint;
         private int chartSize;
         private int margin;
-        private object? selectedCurve;
+        private CurveId? selectedCurve;
 
-        public event Action<object>? CurveChanged;
+        public event Action<CurveId?>? CurveChanged;
 
         private bool showAll;
         public bool ShowAll
@@ -97,7 +98,7 @@ namespace ChartControl
             base.Refresh();
         }
 
-        public float GetCurveValueAt(object curveId, float k)
+        public float GetCurveValueAt(CurveId curveId, float k)
         {
             if(this.curves.TryGetValue(curveId, out var curve))
             {
@@ -121,7 +122,7 @@ namespace ChartControl
             curve.CurveChanged += CurveChangedHandler;
         }
 
-        private void CurveChangedHandler(object curveId)
+        private void CurveChangedHandler(CurveId curveId)
         {
             this.CurveChanged?.Invoke(curveId);
         }
@@ -135,7 +136,7 @@ namespace ChartControl
             }
         }
 
-        public void SelectCurve(object curveId) 
+        public void SelectCurve(CurveId curveId) 
         {
             this.selectedCurve = curveId;
 
@@ -164,6 +165,39 @@ namespace ChartControl
         public void Reset()
         {
             this.curves.Clear();
+        }
+
+        public void SaveAsFile(string path)
+        {
+            using (var fs = new StreamWriter(path))
+            {
+                var serialized = JsonSerializer.Serialize(this.curves, new JsonSerializerOptions() { Converters = { new ColorJsonConverter() } });
+                fs.Write(serialized);
+            }
+        }
+
+        public void LoadFromFile(string path)
+        {
+            using (var fs = new StreamReader(path))
+            {
+                var serialized = fs.ReadToEnd();
+                var deserialized = JsonSerializer.Deserialize(serialized, typeof(Dictionary<CurveId, Curve>), new JsonSerializerOptions() { Converters = {new ColorJsonConverter()}}) as Dictionary<CurveId, Curve>;
+
+                if (deserialized != null)
+                {
+                    this.curves.Clear();
+                    foreach (var pair in deserialized)
+                    {
+                        pair.Value.CurveChanged += CurveChangedHandler;
+                    }
+
+                    this.curves = deserialized;
+                    if(selectedCurve.HasValue)
+                        SelectCurve(selectedCurve.Value);
+                    Refresh();
+                    this.CurveChanged?.Invoke(null);
+                }
+            }
         }
     }
 }

@@ -1,31 +1,34 @@
 ﻿
 using FastBitmap;
+using System.Text.Json.Serialization;
 
 namespace ChartControl
 {
+    [Serializable]
     public class ControlPoint
     {
         public float Scale { get; set; }
         public float X { get; private set; }
         public float Y { get; private set; }
 
-        internal bool edgeControlPoint;
+        public bool EdgeControlPoint { get; private set; }
 
         public event PointMovedEventHandler? PointMoved;
 
+        [JsonConstructor]
         public ControlPoint(float x, float y, bool edgeControlPoint = false)
         {
             X = x;
             Y = y;
 
-            this.edgeControlPoint = edgeControlPoint;
+            this.EdgeControlPoint = edgeControlPoint;
         }
 
         public void MoveTo(float x, float y)
         {
             var oldX = X; 
             var oldY = Y;
-            if(!edgeControlPoint)
+            if(!EdgeControlPoint)
             X = x / Scale; 
             
             Y = y / Scale;

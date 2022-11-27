@@ -26,6 +26,9 @@ namespace ColorSeparator
     public static class Glyphs
     {
         public const string File = "\U0001F4C2";
+        public const string Save = "\U0001F4BE";
+        public const string Image = "\U0001F5BC";
+        public const string Chart = "\U0001F4C8";
     }
 
     public static class Labels

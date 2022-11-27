@@ -14,6 +14,5 @@ namespace ColorSeparatorApp.Components
 
             Image = directBitmapImage.Bitmap;
         }
-
     }
 }

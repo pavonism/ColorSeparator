@@ -1,4 +1,5 @@
 ﻿using ToolbarControls;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 namespace SurfaceFiller.Components
 {
@@ -217,6 +218,24 @@ namespace SurfaceFiller.Components
 
             AddTooltip(radio, hint);
             this.currentRadioBox.Controls.Add(radio);
+            this.currentRadioBox.Height = this.currentRadioBox.Controls.Count * ControlConstants.MinimumControlSize;
+        }
+
+        public void AddOptionToBox(EventHandler onOptionChanged, string text, string? hint = null)
+        {
+            if (this.currentRadioBox == null)
+                throw new Exception("RadioBox not found! Try to use CreateNewRadioBox()");
+
+            var checkBox = new CheckBox()
+            {
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Text = text,
+            };
+
+            checkBox.CheckedChanged += onOptionChanged;
+            AddTooltip(checkBox, hint);
+            this.currentRadioBox.Controls.Add(checkBox);
             this.currentRadioBox.Height = this.currentRadioBox.Controls.Count * ControlConstants.MinimumControlSize;
         }
     }
