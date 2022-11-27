@@ -1,9 +1,16 @@
-﻿namespace ImageProcessor.Interfaces
+﻿using ChartControl;
+using FastBitmap;
+using ImageProcessor.Colors;
+
+namespace ImageProcessor.Interfaces
 {
     public interface ISampleProvider : ISampleViewer
     {
-        event Action<Bitmap> SampleChanged;
-        event Action<Bitmap> SampleSizeChanged;
-        Bitmap Sample { get; }
+        CurveId? CurveId { get; }
+        Cmyk[,] CmyTable { get; }
+        bool Busy { get; set; }
+
+        event Action<ISampleProvider> SampleChanged;
+        DirectBitmap Sample { get; }
     }
 }

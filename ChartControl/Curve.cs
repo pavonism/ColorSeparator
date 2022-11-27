@@ -14,7 +14,8 @@ namespace ChartControl
 
         [JsonIgnore]
         public PointF[] Coefficients { get; private set; } = new PointF[Constants.ControlPointsCount];
-        private float[] values;
+        [JsonIgnore]
+        public float[] Values { get; private set; }
         public Color Color { get; private set; }
         public bool ShowControlPoints { get; set; } = false;
         public bool Visible { get; set; } = true;
@@ -59,7 +60,7 @@ namespace ChartControl
         private void CalculateCoefficients()
         {
             Coefficients = BezierDrawer.CalculateCoefficients(ControlPoints);
-            this.values = BezierDrawer.CalculateValues(Coefficients);
+            Values = BezierDrawer.CalculateValues(Coefficients);
 
             this.CurveChanged?.Invoke(Id);
         }
@@ -99,7 +100,7 @@ namespace ChartControl
 
         public float GetValueAt(float k)
         {
-            return this.values[(int)Math.Min(100*k, 99)];
+            return Values[(int)Math.Min(100*k, 99)];
         }
     }
 }

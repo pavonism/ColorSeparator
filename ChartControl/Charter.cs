@@ -36,12 +36,18 @@ namespace ChartControl
         {
             this.margin = margin;
             this.curves = new();
+
+            ReInitialize();
         }
 
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
+            ReInitialize();
+        }
 
+        private void ReInitialize()
+        {
             this.directBitmap?.Dispose();
             int size = Math.Min(this.Width, this.Height);
             this.directBitmap = new(size, size);
@@ -107,6 +113,16 @@ namespace ChartControl
 
             return 0;
         }
+        public float[] GetCurveValues(CurveId curveId)
+        {
+            if (this.curves.TryGetValue(curveId, out var curve))
+            {
+                return curve.Values;
+            }
+
+            throw new ArgumentException();
+        }
+
 
         private void DrawMargin()
         {

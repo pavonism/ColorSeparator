@@ -16,31 +16,12 @@ namespace ColorSeparator
         #region Controls
         private TableLayoutPanel mainTableLayout = new();
         private Toolbar toolbar = new();
-        private Charter charter = new(FormConstants.ChartMargin) 
-        {
-            Dock = DockStyle.Top,
-        };
-        private PictureSampler imagePreview = new() 
-        { 
-            Dock = DockStyle.Fill, 
-            SizeMode = PictureBoxSizeMode.StretchImage 
-        };
-        private SampleViewer cyanPreview = new() 
-        { 
-            Dock = DockStyle.Fill 
-        };
-        private SampleViewer magentaPreview = new() 
-        { 
-            Dock = DockStyle.Fill 
-        };
-        private SampleViewer yellowPreview = new() 
-        { 
-            Dock = DockStyle.Fill 
-        };
-        private SampleViewer blackPreview = new() 
-        { 
-            Dock = DockStyle.Fill 
-        };
+        private Charter charter;
+        private PictureSampler imagePreview;
+        private PictureSampler cyanPreview;
+        private PictureSampler magentaPreview;
+        private PictureSampler yellowPreview;
+        private PictureSampler blackPreview;
         #endregion Controls
 
         #region Initialize
@@ -49,6 +30,11 @@ namespace ColorSeparator
             InitializeComponent();
             InitializeToolbar();
             ArrangeComponents();
+            FinishInitialization();
+        }
+
+        private void FinishInitialization()
+        {
         }
 
         private void InitializeComponent()
@@ -57,8 +43,14 @@ namespace ColorSeparator
             this.MinimumSize = new Size(FormConstants.MinimumWidth, FormConstants.MinimumHeight);
             this.Size = new Size(FormConstants.InitialWidth, FormConstants.InitialHeight);
 
-            this.imageMng = new(this.imagePreview, this.charter);
-            this.imageMng.ParametersChanged += ParametersChangedHandler;
+            this.charter = new(FormConstants.ChartMargin) { Dock= DockStyle.Top };
+            this.imageMng = new();
+            this.imagePreview = new(this.imageMng);
+            this.cyanPreview = new(this.imageMng, CurveId.Cyan);
+            this.magentaPreview = new(this.imageMng, CurveId.Magenta);
+            this.yellowPreview = new(this.imageMng, CurveId.Yellow);
+            this.blackPreview = new(this.imageMng, CurveId.Black);
+            this.imageMng.InitializeWithChart(this.charter);
         }
 
         private void InitializeToolbar()
@@ -151,44 +143,6 @@ namespace ColorSeparator
 
         #endregion Initialize
 
-        #region Charts
-        private void ParametersChangedHandler(CurveId? curve, Cmyk[,] cmykRepresentation)
-        {
-            if (curve == null)
-                ReloadAllSamples(cmykRepresentation);
-            else
-                switch (curve)
-                {
-                    case CurveId.Cyan:
-                        ReloadSample(cyanPreview, CurveId.Cyan, cmykRepresentation);
-                        break;
-                    case CurveId.Magenta:
-                        ReloadSample(magentaPreview, CurveId.Magenta, cmykRepresentation);
-                        break;
-                    case CurveId.Yellow:
-                        ReloadSample(yellowPreview, CurveId.Yellow, cmykRepresentation);
-                        break;
-                    case CurveId.Black:
-                        ReloadSample(blackPreview, CurveId.Black, cmykRepresentation);
-                        break;
-                }
-
-        }
-
-        private void ReloadSample(SampleViewer sampleViewer, CurveId curveId, Cmyk[,]? cmykRepresentation)
-        {
-            this.imageMng.RunGenerateSeparateImageAsync(sampleViewer, curveId, cmykRepresentation);
-        }
-
-        private void ReloadAllSamples(Cmyk[,]? cmykRepresentation = null)
-        {
-            ReloadSample(cyanPreview, CurveId.Cyan, cmykRepresentation);
-            ReloadSample(magentaPreview, CurveId.Magenta, cmykRepresentation);
-            ReloadSample(yellowPreview, CurveId.Yellow, cmykRepresentation);
-            ReloadSample(blackPreview, CurveId.Black, cmykRepresentation);
-        }
-        #endregion
-
         #region Handlers
         private void CyanRadioHandler(object? sender, EventArgs e)
         {
@@ -228,7 +182,10 @@ namespace ColorSeparator
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     this.imagePreview.LoadImage(openFileDialog.FileName);
-                    ReloadAllSamples();
+                    this.cyanPreview.SourceImage = this.imagePreview.SourceImage;
+                    this.magentaPreview.SourceImage = this.imagePreview.SourceImage;
+                    this.yellowPreview.SourceImage = this.imagePreview.SourceImage;
+                    this.blackPreview.SourceImage = this.imagePreview.SourceImage;
                 }
             }
         }

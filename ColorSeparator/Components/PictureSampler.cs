@@ -1,17 +1,28 @@
-﻿using ImageProcessor.Interfaces;
+﻿using ChartControl;
+using FastBitmap;
+using ImageProcessor;
+using ImageProcessor.Colors;
+using ImageProcessor.Interfaces;
 
 namespace ColorSeparatorApp.Components
 {
     internal class PictureSampler : SampleViewer, ISampleProvider
     {
-        public Bitmap Sample { get; set; }
+        public CurveId? CurveId { get; private set; }
+        protected bool isGeneratingView;
+        protected ImageMng imageMng;
 
-        public event Action<Bitmap>? SampleChanged;
-        public event Action<Bitmap>? SampleSizeChanged;
+        public DirectBitmap Sample { get; set; }
 
-        public PictureSampler()
+        public event Action<ISampleProvider>? SampleChanged;
+
+        public PictureSampler(ImageMng imageMng, CurveId? curveId = null)
         {
-            Sample = new(Width, Height);
+            this.CurveId = curveId;
+            this.Dock = DockStyle.Fill;
+            this.imageMng = imageMng;
+            
+            this.imageMng.Subscribe(this, this.CurveId);
         }
 
         private Image? sourceImage;
@@ -21,18 +32,19 @@ namespace ColorSeparatorApp.Components
             set
             {
                 sourceImage = value;
-
                 GenerateSample();
-                SampleChanged?.Invoke(Sample);
             }
         }
+
+        public Cmyk[,] CmyTable { get; private set; }
+        public bool Busy { get; set; }
 
         private void GenerateSample()
         {
             if (SourceImage == null)
                 return;
 
-            Sample.Dispose();
+            Sample?.Dispose();
             Sample = new(Width, Height);
 
             if (SourceImage.Width < SourceImage.Height)
@@ -42,7 +54,7 @@ namespace ColorSeparatorApp.Components
 
                 var margin = (Width - bitmapWidth) / 2;
 
-                using (var g = Graphics.FromImage(Sample))
+                using (var g = Graphics.FromImage(Sample.Bitmap))
                 {
                     g.DrawImage(SourceImage, margin, 0, bitmapWidth, Height);
                 }
@@ -54,12 +66,14 @@ namespace ColorSeparatorApp.Components
 
                 var margin = (Height - bitmapHeight) / 2;
 
-                using (var g = Graphics.FromImage(Sample))
+                using (var g = Graphics.FromImage(Sample.Bitmap))
                 {
                     g.DrawImage(SourceImage, 0, margin, Width, bitmapHeight);
                 }
             }
 
+            CmyTable = this.imageMng.CalculateCmyRepresentation(this.Sample);
+            SampleChanged?.Invoke(this);
         }
 
         protected override void OnSizeChanged(EventArgs e)
@@ -67,7 +81,6 @@ namespace ColorSeparatorApp.Components
             base.OnSizeChanged(e);
 
             GenerateSample();
-            SampleSizeChanged?.Invoke(Sample);
         }
 
         public void LoadImage(string path)
