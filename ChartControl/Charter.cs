@@ -46,6 +46,7 @@ namespace ChartControl
         private void CurveChangedTimerTickHandler(object? sender, EventArgs e)
         {
             this.CurveChanged?.Invoke(this.selectedCurve!);
+            this.CurveChangedTimer.Stop();
         }
 
         protected override void OnSizeChanged(EventArgs e)

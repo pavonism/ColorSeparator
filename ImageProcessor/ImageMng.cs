@@ -10,6 +10,7 @@ namespace ImageProcessor
         private Cmyk[,] cmykRepresentation;
         private float retraction;
         private bool isGenerating;
+        private bool[] imageIsGenerating = new bool[4];
 
         public int RenderThreads { get; set; } = 50;
         public float Retraction
@@ -19,7 +20,6 @@ namespace ImageProcessor
             {
                 this.retraction = value;
                 RunRegenerateImageAsync();
-                this.ParametersChanged?.Invoke();
             }
         }
 
@@ -55,15 +55,18 @@ namespace ImageProcessor
         private void RunRegenerateImageAsync()
         {
             if (!isGenerating)
+            {
+                isGenerating = true;
                 ReGenerateImageAsync();
+            }
         }
 
         private Task ReGenerateImageAsync()
         {
             return Task.Run(() =>
             {
-                isGenerating = true;
                 CalculateCmykRepresentation();
+                this.ParametersChanged?.Invoke();
                 GenerateImage();
                 isGenerating = false;
             });
@@ -150,15 +153,25 @@ namespace ImageProcessor
             this.sampleProvider.PutImage(currentImage);
         }
 
-        public Task GenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId? curve = null)
+        public void RunGenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve)
+        {
+            if (!imageIsGenerating[(int)curve])
+            {
+                imageIsGenerating[(int)curve] = true;
+                GenerateSeparateImageAsync(sampleViewer, curve);
+            }
+        }
+
+        public Task GenerateSeparateImageAsync(ISampleViewer sampleViewer, CurveId curve)
         {
             return Task.Run(() =>
             {
                 GenerateSeparateImage(sampleViewer, curve);
+                imageIsGenerating[(int)curve] = false;
             });
         }
 
-        public void GenerateSeparateImage(ISampleViewer sampleViewer, CurveId? curve = null)
+        public void GenerateSeparateImage(ISampleViewer sampleViewer, CurveId curve)
         {
             if (this.image == null)
                 return;

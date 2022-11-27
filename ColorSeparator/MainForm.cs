@@ -54,8 +54,8 @@ namespace ColorSeparator
 
         private void ReloadSample(SampleViewer sampleViewer, CurveId curveId)
         {
-            //this.imageMng.GenerateSeparateImageAsync(sampleViewer, curveId);
-            this.imageMng.GenerateSeparateImage(sampleViewer, curveId);
+            this.imageMng.RunGenerateSeparateImageAsync(sampleViewer, curveId);
+            //this.imageMng.GenerateSeparateImage(sampleViewer, curveId);
         }
 
         private void ReloadAllSamples()
@@ -74,7 +74,7 @@ namespace ColorSeparator
 
             this.imageMng = new(this.imagePreview, this.charter);
             this.imageMng.ParametersChanged += ParametersChangedHandler;
-            this.charter.CurveChanged += CurveChangedHandler;
+            //this.charter.CurveChanged += CurveChangedHandler;
         }
 
         private void InitializeToolbar()
