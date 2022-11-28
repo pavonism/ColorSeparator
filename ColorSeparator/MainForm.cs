@@ -1,7 +1,6 @@
 using ChartControl;
 using ColorSeparatorApp.Components;
 using ImageProcessor;
-using ImageProcessor.Colors;
 using SurfaceFiller.Components;
 using System.Drawing.Imaging;
 
@@ -59,6 +58,8 @@ namespace ColorSeparator
             this.toolbar.AddDivider();
             this.charter.Height = this.charter.Width = this.toolbar.Width;
             this.toolbar.Controls.Add(this.charter);
+            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
+            this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
             this.toolbar.AddDivider();
             this.toolbar.CreateNewRadioBox();
             this.toolbar.AddRadioOption(CyanRadioHandler, Labels.Cyan, string.Empty, true);
@@ -68,8 +69,7 @@ namespace ColorSeparator
             this.toolbar.AddOptionToBox(ShowAllCurvesHandler, Labels.ShowAllCurves);
             this.toolbar.AddDivider();
             this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
-            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
-            this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
+            this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save);
             this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
             this.toolbar.AddSlider(RetractionSliderHandler, "Retraction", 1f);
         }
@@ -181,7 +181,7 @@ namespace ColorSeparator
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    this.imagePreview.LoadImage(openFileDialog.FileName);
+                    this.imagePreview.ImagePath = openFileDialog.FileName;
                     this.cyanPreview.SourceImage = this.imagePreview.SourceImage;
                     this.magentaPreview.SourceImage = this.imagePreview.SourceImage;
                     this.yellowPreview.SourceImage = this.imagePreview.SourceImage;
@@ -197,6 +197,20 @@ namespace ColorSeparator
         private void ThreadsSliderHandler(float value)
         {
             this.imageMng.RenderThreads = (int)(value * 100);
+        }
+
+        private void SaveImagesHandler(object? sender, EventArgs e)
+        {
+            if (this.imagePreview.SourceImage == null)
+                return;
+
+            SaveFileDialog saveCurvesDialog = new SaveFileDialog();
+            saveCurvesDialog.ShowDialog();
+
+            if (!string.IsNullOrEmpty(saveCurvesDialog.FileName))
+            {
+                this.imageMng.SaveAll(this.imagePreview.SourceImage, saveCurvesDialog.FileName, Path.GetExtension(this.imagePreview.ImagePath));
+            }
         }
         #endregion
     }

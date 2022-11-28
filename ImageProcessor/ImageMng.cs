@@ -86,6 +86,21 @@ namespace ImageProcessor
         #endregion
 
         #region Generating Images
+        public void SaveAll(Image image, string path, string extension)
+        {
+            var curveValues = GetCurveValues();
+            var bitmap = new DirectBitmap(new Bitmap(image));
+
+            var cmykTable = CmyTableToCmyk(CalculateCmyRepresentation(bitmap), curveValues);
+            if(this.sampleProvider != null)
+                RunSaveImageAsync(this.sampleProvider, cmykTable, path + extension);
+
+            foreach (var pair in this.cmykProviders)
+            {
+                RunSaveImageAsync(pair.Value, cmykTable, path + pair.Key + extension);
+            }
+        }
+
         public void ReGenerateAll()
         {
             var curveValues = GetCurveValues();
@@ -120,6 +135,24 @@ namespace ImageProcessor
                 });
         }
 
+        private void RunSaveImageAsync(ISampleProvider sampleProvider, Cmyk[,] cmykTable, string filename)
+        {
+            if (!sampleProvider.Busy)
+            {
+                sampleProvider.Busy = true;
+                SaveImageAsync(sampleProvider, cmykTable, sampleProvider.CurveId, filename);
+            }
+        }
+
+        public Task SaveImageAsync(ISampleProvider sampleProvider, Cmyk[,] cmykTable, CurveId? curveId, string filename)
+        {
+            return Task.Run(() => {
+                var generatedImage = GenerateImage(cmykTable, curveId);
+                generatedImage.Bitmap.Save(filename);
+                sampleProvider.Busy = false;
+            });
+        }
+
         private void RunGenerateImageAsync(ISampleProvider sampleProvider, CurveValues curveValues)
         {
             if(!sampleProvider.Busy)
@@ -131,10 +164,14 @@ namespace ImageProcessor
 
         public Task GenerateImageAsync(ISampleProvider sampleProvider, CurveValues curveValues, CurveId? curveId)
         {
-            return Task.Run(() => GenerateImage(sampleProvider, CmyTableToCmyk(sampleProvider.CmyTable, curveValues), curveId));
+            return Task.Run(() => { 
+                var generatedImage = GenerateImage(CmyTableToCmyk(sampleProvider.CmyTable, curveValues), curveId);
+                sampleProvider.PutImage(generatedImage);
+                sampleProvider.Busy = false;
+            });
         }
 
-        public void GenerateImage(ISampleProvider sampleProvider, Cmyk[,] cmykRepresentation, CurveId? curveId)
+        public DirectBitmap GenerateImage(Cmyk[,] cmykRepresentation, CurveId? curveId)
         {
             int width = cmykRepresentation.GetLength(0);
             int height = cmykRepresentation.GetLength(1);
@@ -148,8 +185,7 @@ namespace ImageProcessor
             }
 
             Task.WaitAll(tasks.ToArray());
-            sampleProvider.PutImage(currentImage);
-            sampleProvider.Busy = false;
+            return currentImage;
         }
         #endregion Generating Images
 

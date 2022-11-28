@@ -3,6 +3,7 @@ using FastBitmap;
 using ImageProcessor;
 using ImageProcessor.Colors;
 using ImageProcessor.Interfaces;
+using System.IO;
 
 namespace ColorSeparatorApp.Components
 {
@@ -12,6 +13,16 @@ namespace ColorSeparatorApp.Components
         protected bool isGeneratingView;
         protected ImageMng imageMng;
 
+        private string imagePath;
+        public string ImagePath
+        {
+            get => this.imagePath;
+            set
+            {
+                SourceImage = Image.FromFile(value);
+                this.imagePath = value;
+            }
+        }
         public DirectBitmap Sample { get; set; }
 
         public event Action<ISampleProvider>? SampleChanged;
@@ -81,11 +92,6 @@ namespace ColorSeparatorApp.Components
             base.OnSizeChanged(e);
 
             GenerateSample();
-        }
-
-        public void LoadImage(string path)
-        {
-            SourceImage = Image.FromFile(path);
         }
     }
 }
