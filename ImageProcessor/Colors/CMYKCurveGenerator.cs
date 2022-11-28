@@ -6,6 +6,7 @@ namespace ImageProcessor
     {
         public static void GenerateSample(Charter charter)
         {
+            charter.Reset();
             PointF startPoint = new(0, 0);
             PointF endPoint = new(1, 1);
 

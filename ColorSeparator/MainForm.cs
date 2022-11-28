@@ -43,6 +43,7 @@ namespace ColorSeparator
             this.Size = new Size(FormConstants.InitialWidth, FormConstants.InitialHeight);
 
             this.charter = new(FormConstants.ChartMargin) { Dock= DockStyle.Top };
+            this.charter.SelectCurve(CurveId.Cyan);
             this.imageMng = new();
             this.imagePreview = new(this.imageMng);
             this.cyanPreview = new(this.imageMng, CurveId.Cyan);
@@ -60,6 +61,7 @@ namespace ColorSeparator
             this.toolbar.Controls.Add(this.charter);
             this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
             this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
+            this.toolbar.AddButton(ResetCurvesHandler, Glyphs.Reset);
             this.toolbar.AddDivider();
             this.toolbar.CreateNewRadioBox();
             this.toolbar.AddRadioOption(CyanRadioHandler, Labels.Cyan, string.Empty, true);
@@ -72,35 +74,6 @@ namespace ColorSeparator
             this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save);
             this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
             this.toolbar.AddSlider(RetractionSliderHandler, "Retraction", 1f);
-        }
-
-        private void LoadCurvesHandler(object? sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.RestoreDirectory = true;
-
-                var codecs = ImageCodecInfo.GetImageEncoders();
-                var codecFilter = "Json Files(*.json)|*.json";
-                openFileDialog.Filter = codecFilter;
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    this.charter.LoadFromFile(openFileDialog.FileName);
-                }
-            }
-        }
-
-        private void SaveCurvesHandler(object? sender, EventArgs e)
-        {
-            SaveFileDialog saveCurvesDialog = new SaveFileDialog();
-            saveCurvesDialog.Filter = "Json|*.json";
-            saveCurvesDialog.ShowDialog();
-
-            if (!string.IsNullOrEmpty(saveCurvesDialog.FileName))
-            {
-                this.charter.SaveAsFile(saveCurvesDialog.FileName);
-            }
         }
 
         private void ArrangeComponents()
@@ -144,6 +117,39 @@ namespace ColorSeparator
         #endregion Initialize
 
         #region Handlers
+        private void ResetCurvesHandler(object? sender, EventArgs e)
+        {
+            CMYKCurveGenerator.GenerateSample(this.charter);
+        }
+
+        private void LoadCurvesHandler(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                var codecs = ImageCodecInfo.GetImageEncoders();
+                var codecFilter = "Json Files(*.json)|*.json";
+                openFileDialog.Filter = codecFilter;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.charter.LoadFromFile(openFileDialog.FileName);
+                }
+            }
+        }
+
+        private void SaveCurvesHandler(object? sender, EventArgs e)
+        {
+            SaveFileDialog saveCurvesDialog = new SaveFileDialog();
+            saveCurvesDialog.Filter = "Json|*.json";
+            saveCurvesDialog.ShowDialog();
+
+            if (!string.IsNullOrEmpty(saveCurvesDialog.FileName))
+            {
+                this.charter.SaveAsFile(saveCurvesDialog.FileName);
+            }
+        }
         private void CyanRadioHandler(object? sender, EventArgs e)
         {
             this.charter.SelectCurve(CurveId.Cyan);

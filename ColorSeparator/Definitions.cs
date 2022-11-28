@@ -29,6 +29,7 @@ namespace ColorSeparator
         public const string Save = "\U0001F4BE";
         public const string Image = "\U0001F5BC";
         public const string Chart = "\U0001F4C8";
+        public const string Reset = "\U0001F504";
     }
 
     public static class Labels

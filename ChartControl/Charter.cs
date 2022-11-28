@@ -134,6 +134,9 @@ namespace ChartControl
 
         public void AddCurve(Curve curve)
         {
+            if (curve.Id == this.selectedCurve)
+                curve.ShowControlPoints = true;
+
             this.curves.Add(curve.Id, curve);
             curve.CurveChanged += CurveChangedHandler;
         }
