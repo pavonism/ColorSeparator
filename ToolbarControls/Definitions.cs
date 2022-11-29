@@ -14,6 +14,11 @@ namespace ToolbarControls
         public const int LabelWidth = 2 * MinimumControlSize;
     }
 
+    public static class Resources
+    {
+        public static Color ThemeColor = Color.FromArgb(255, 0, 120, 215);
+    }
+
     internal static class ControlGlyphs
     {
         public const string Play = "\u25B6";

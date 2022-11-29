@@ -1,5 +1,6 @@
 using ChartControl;
 using ColorSeparatorApp.Components;
+using ColorSeparatorApp.Samples;
 using ImageProcessor;
 using SurfaceFiller.Components;
 using System.Drawing.Imaging;
@@ -45,7 +46,7 @@ namespace ColorSeparator
             this.charter = new(FormConstants.ChartMargin) { Dock= DockStyle.Top };
             this.charter.SelectCurve(CurveId.Cyan);
             this.imageMng = new();
-            this.imagePreview = new(this.imageMng);
+            this.imagePreview = new();
             this.cyanPreview = new(this.imageMng, CurveId.Cyan);
             this.magentaPreview = new(this.imageMng, CurveId.Magenta);
             this.yellowPreview = new(this.imageMng, CurveId.Yellow);
@@ -59,9 +60,12 @@ namespace ColorSeparator
             this.toolbar.AddDivider();
             this.charter.Height = this.charter.Width = this.toolbar.Width;
             this.toolbar.Controls.Add(this.charter);
-            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
             this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
+            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
             this.toolbar.AddButton(ResetCurvesHandler, Glyphs.Reset);
+            this.toolbar.AddDivider();
+            var samples = SampleGenerator.GenerateAllSamples();
+            this.toolbar.AddComboApply(ComboApplyHandler, samples, samples.Length > 0 ? samples[0] : null);
             this.toolbar.AddDivider();
             this.toolbar.CreateNewRadioBox();
             this.toolbar.AddRadioOption(CyanRadioHandler, Labels.Cyan, string.Empty, true);
@@ -73,7 +77,11 @@ namespace ColorSeparator
             this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
             this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save);
             this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
-            this.toolbar.AddSlider(RetractionSliderHandler, "Retraction", 1f);
+        }
+
+        private void ComboApplyHandler(CurveSample obj)
+        {
+            this.charter.LoadFromFile(obj.Path);
         }
 
         private void ArrangeComponents()

@@ -22,6 +22,9 @@ namespace ColorSeparator
     public static class Resources
     {
         public const string ProgramTitle = "ColorSeperator";
+
+        public const string Curves = @"..\..\..\..\Assets\Curves";
+        public const string CurveExtension = "json";
     }
     public static class Glyphs
     {

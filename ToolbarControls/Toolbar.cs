@@ -238,5 +238,17 @@ namespace SurfaceFiller.Components
             this.currentRadioBox.Controls.Add(checkBox);
             this.currentRadioBox.Height = this.currentRadioBox.Controls.Count * ControlConstants.MinimumControlSize;
         }
+
+        public void AddComboApply<T>(Action<T> applyHandler, IEnumerable<T> comboOptions, T? defaultOption, string? hint = null)
+        {
+            var comboApply = defaultOption == null ? new ComboApply<ComboPicker<T>, T>(comboOptions) : new ComboApply<ComboPicker<T>, T>(comboOptions, defaultOption);
+            comboApply.Width = Width;
+            comboApply.Height = Height + 10;
+            comboApply.Apply += applyHandler;
+
+            AddTooltip(comboApply, hint);
+            comboApply.Margin = new Padding(0, 5, 0, 5);
+            Controls.Add(comboApply);
+        }
     }
 }

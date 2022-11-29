@@ -13,7 +13,7 @@ namespace ImageProcessor
         private Dictionary<CurveId, ISampleProvider> cmykProviders = new Dictionary<CurveId, ISampleProvider>();
 
         private Charter colorCurves;
-        private float retraction;
+        private float retraction = 1f;
 
         public int RenderThreads { get; set; } = 50;
         public float Retraction

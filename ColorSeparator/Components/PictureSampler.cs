@@ -11,7 +11,7 @@ namespace ColorSeparatorApp.Components
     {
         public CurveId? CurveId { get; private set; }
         protected bool isGeneratingView;
-        protected ImageMng imageMng;
+        protected ImageMng? imageMng;
 
         private string imagePath;
         public string ImagePath
@@ -27,13 +27,13 @@ namespace ColorSeparatorApp.Components
 
         public event Action<ISampleProvider>? SampleChanged;
 
-        public PictureSampler(ImageMng imageMng, CurveId? curveId = null)
+        public PictureSampler(ImageMng? imageMng = null, CurveId? curveId = null)
         {
             this.CurveId = curveId;
             this.Dock = DockStyle.Fill;
             this.imageMng = imageMng;
             
-            this.imageMng.Subscribe(this, this.CurveId);
+            this.imageMng?.Subscribe(this, this.CurveId);
         }
 
         private Image? sourceImage;
@@ -57,6 +57,9 @@ namespace ColorSeparatorApp.Components
 
             Sample?.Dispose();
             Sample = new(Width, Height);
+
+            if (this.imageMng == null)
+                Fill();
 
             if (SourceImage.Width < SourceImage.Height)
             {
@@ -83,8 +86,19 @@ namespace ColorSeparatorApp.Components
                 }
             }
 
-            CmyTable = this.imageMng.CalculateCmyRepresentation(this.Sample);
+            if (this.imageMng != null)
+                CmyTable = this.imageMng.CalculateCmyRepresentation(this.Sample);
+            else
+                PutImage(this.Sample);
             SampleChanged?.Invoke(this);
+        }
+
+        private void Fill()
+        {
+            using(var g = Graphics.FromImage(Sample.Bitmap)) 
+            {
+                g.Clear(Color.Black);
+            }
         }
 
         protected override void OnSizeChanged(EventArgs e)
