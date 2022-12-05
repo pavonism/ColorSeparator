@@ -1,6 +1,6 @@
 ﻿using ChartControl;
 
-namespace ImageProcessor
+namespace ImageProcessor.Colors
 {
     public class CurveValues
     {

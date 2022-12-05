@@ -1,5 +1,4 @@
 using ChartControl;
-using ColorSeparatorApp.Components;
 using ColorSeparatorApp.Samples;
 using ImageProcessor;
 using SurfaceFiller.Components;
@@ -30,11 +29,6 @@ namespace ColorSeparator
             InitializeComponent();
             InitializeToolbar();
             ArrangeComponents();
-            FinishInitialization();
-        }
-
-        private void FinishInitialization()
-        {
         }
 
         private void InitializeComponent()
@@ -202,10 +196,6 @@ namespace ColorSeparator
                     this.blackPreview.SourceImage = this.imagePreview.SourceImage;
                 }
             }
-        }
-        private void RetractionSliderHandler(float value)
-        {
-            this.imageMng.Retraction = value;
         }
 
         private void ThreadsSliderHandler(float value)

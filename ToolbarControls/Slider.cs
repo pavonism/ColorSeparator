@@ -1,5 +1,4 @@
-﻿
-using ToolbarControls;
+﻿using ToolbarControls;
 
 namespace SurfaceFiller.Components
 {

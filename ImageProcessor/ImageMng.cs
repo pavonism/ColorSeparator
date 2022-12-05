@@ -2,7 +2,6 @@
 using FastBitmap;
 using ImageProcessor.Colors;
 using ImageProcessor.Interfaces;
-using System.Net;
 
 namespace ImageProcessor
 {
@@ -13,21 +12,11 @@ namespace ImageProcessor
         private Dictionary<CurveId, ISampleProvider> cmykProviders = new Dictionary<CurveId, ISampleProvider>();
 
         private Charter colorCurves;
-        private float retraction = 1f;
 
         public int RenderThreads { get; set; } = 50;
-        public float Retraction
-        {
-            get => this.retraction;
-            set
-            {
-                this.retraction = value;
-                ReGenerateAll();
-            }
-        }
         #endregion Fields and Properties
 
-        #region Event Handlers
+        #region Events and Handlers
         private void CurveChangedHandler(CurveId? curveId)
         {
             if(curveId == null)
@@ -38,15 +27,17 @@ namespace ImageProcessor
 
             var curveValues = GetCurveValues();
 
-            if (this.sampleProvider != null && this.sampleProvider.Sample != null)
-                RunGenerateImageAsync(this.sampleProvider, curveValues);
-
             if(curveId != null && this.cmykProviders.TryGetValue(curveId.Value, out var provider) && provider.Sample != null)
             {
                 RunGenerateImageAsync(provider, curveValues);
             }
         }
-        #endregion Event Handlers
+        
+        private void SampleSizeChangedHandler(ISampleProvider sampleProvider)
+        {
+            RunGenerateImageAsync(sampleProvider, GetCurveValues());
+        }
+        #endregion Events and Handlers
 
         #region Initializing
         public void InitializeWithChart(Charter colorCurves)
@@ -68,11 +59,6 @@ namespace ImageProcessor
             sampleProvider.SampleChanged += SampleSizeChangedHandler;
         }
 
-        private void SampleSizeChangedHandler(ISampleProvider sampleProvider)
-        {
-            RunGenerateImageAsync(sampleProvider, GetCurveValues());
-        }
-
         private CurveValues GetCurveValues()
         {
             return new CurveValues
@@ -92,8 +78,6 @@ namespace ImageProcessor
             var bitmap = new DirectBitmap(new Bitmap(image));
 
             var cmykTable = CmyTableToCmyk(CalculateCmyRepresentation(bitmap), curveValues);
-            if(this.sampleProvider != null)
-                RunSaveImageAsync(this.sampleProvider, cmykTable, path + extension);
 
             foreach (var pair in this.cmykProviders)
             {
@@ -104,9 +88,6 @@ namespace ImageProcessor
         public void ReGenerateAll()
         {
             var curveValues = GetCurveValues();
-
-            if (this.sampleProvider != null && this.sampleProvider.Sample != null)
-                RunGenerateImageAsync(this.sampleProvider, curveValues);
 
             foreach (var pair in this.cmykProviders)
             {
@@ -258,7 +239,7 @@ namespace ImageProcessor
 
         public Cmyk CmyToCmyk(Cmyk cmyk, CurveValues curveValues)
         {
-            var kprime = cmyk.Min * Retraction;
+            var kprime = cmyk.Min;
             var res = new Cmyk()
             {
                 C = cmyk.C - kprime + curveValues.GetCurveValue(CurveId.Cyan, kprime),
