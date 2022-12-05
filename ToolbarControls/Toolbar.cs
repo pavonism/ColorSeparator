@@ -245,8 +245,8 @@ namespace SurfaceFiller.Components
             comboApply.Width = Width;
             comboApply.Height = Height + 10;
             comboApply.Apply += applyHandler;
+            comboApply.Hint = hint;
 
-            AddTooltip(comboApply, hint);
             comboApply.Margin = new Padding(0, 5, 0, 5);
             Controls.Add(comboApply);
         }

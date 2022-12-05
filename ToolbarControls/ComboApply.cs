@@ -1,4 +1,5 @@
 ﻿using SurfaceFiller.Components;
+using System.Windows.Forms;
 
 namespace ToolbarControls
 {
@@ -8,6 +9,18 @@ namespace ToolbarControls
         private RoundedButton button = new() { Dock = DockStyle.Fill };
 
         public Action<T>? Apply;
+
+        private string hint;
+        public string Hint
+        {
+            get => this.hint;
+            set
+            {
+                this.hint = value;
+                var tooltip = new ToolTip();
+                tooltip.SetToolTip(button, hint);
+            }
+        }
 
         public ComboApply(IEnumerable<T> options, T defaultOption)
             : this(options)

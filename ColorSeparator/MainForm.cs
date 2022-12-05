@@ -60,23 +60,23 @@ namespace ColorSeparator
             this.toolbar.AddDivider();
             this.charter.Height = this.charter.Width = this.toolbar.Width;
             this.toolbar.Controls.Add(this.charter);
-            this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart);
-            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save);
-            this.toolbar.AddButton(ResetCurvesHandler, Glyphs.Reset);
+            this.toolbar.AddButton(LoadCurvesHandler, Glyphs.Chart, Hints.LoadCurves);
+            this.toolbar.AddButton(SaveCurvesHandler, Glyphs.Save, Hints.SaveCurves);
+            this.toolbar.AddButton(ResetCurvesHandler, Glyphs.Reset, Hints.ResetChart);
             this.toolbar.AddDivider();
             var samples = SampleGenerator.GenerateAllSamples();
-            this.toolbar.AddComboApply(ComboApplyHandler, samples, samples.Length > 0 ? samples[0] : null);
+            this.toolbar.AddComboApply(ComboApplyHandler, samples, samples.Length > 0 ? samples[0] : null, Hints.ApplyCurve);
             this.toolbar.AddDivider();
             this.toolbar.CreateNewRadioBox();
             this.toolbar.AddRadioOption(CyanRadioHandler, Labels.Cyan, string.Empty, true);
             this.toolbar.AddRadioOption(MagentaRadioHandler, Labels.Megenta);
             this.toolbar.AddRadioOption(YellowRadioHandler, Labels.Yellow);
             this.toolbar.AddRadioOption(BlackRadioHandler, Labels.Black);
-            this.toolbar.AddOptionToBox(ShowAllCurvesHandler, Labels.ShowAllCurves);
+            this.toolbar.AddOptionToBox(ShowAllCurvesHandler, Labels.ShowAllCurves, Hints.ShowAllCurves);
             this.toolbar.AddDivider();
-            this.toolbar.AddButton(LoadImageHandler, Glyphs.File);
-            this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save);
-            this.toolbar.AddSlider(ThreadsSliderHandler, "T", 0.5f);
+            this.toolbar.AddLabel(Labels.ImageSection);
+            this.toolbar.AddButton(LoadImageHandler, Glyphs.File, Hints.OpenImage);
+            this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save, Hints.SaveImages);
         }
 
         private void ComboApplyHandler(CurveSample obj)

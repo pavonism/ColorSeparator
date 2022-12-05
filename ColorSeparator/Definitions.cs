@@ -37,10 +37,22 @@ namespace ColorSeparator
 
     public static class Labels
     {
+        public const string ImageSection = "Image section";
         public const string Cyan = "Cyan";
         public const string Megenta = "Megenta";
         public const string Yellow = "Yellow";
         public const string Black = "Black";
         public const string ShowAllCurves = "Show all curves";
+    }
+
+    public static class Hints 
+    {
+        public const string OpenImage = "Otwórz zdjęcie z pliku";
+        public const string SaveCurves = "Zapisz krzywe do pliku";
+        public const string LoadCurves = "Wczytaj krzywe z pliku";
+        public const string ResetChart = "Ustaw punkty na wykresie w pozycji początkowej";
+        public const string ShowAllCurves = "Wyświetl na wykresie wszystkie krzywe";
+        public const string SaveImages = "Zapisz obrazy CMYK";
+        public const string ApplyCurve = "Ustaw krzywą Gray Ramp";
     }
 }
