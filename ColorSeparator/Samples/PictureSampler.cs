@@ -131,7 +131,7 @@ namespace ColorSeparatorApp.Samples
         {
             using (var g = Graphics.FromImage(Sample.Bitmap))
             {
-                g.Clear(Color.Black);
+                g.Clear(Color.White);
             }
         }
 

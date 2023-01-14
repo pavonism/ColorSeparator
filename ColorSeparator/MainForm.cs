@@ -10,6 +10,7 @@ namespace ColorSeparator
     {
         #region Managers
         private ImageMng imageMng;
+        private ImageGenerator imageGenerator;
         #endregion
 
         #region Controls
@@ -21,6 +22,9 @@ namespace ColorSeparator
         private PictureSampler magentaPreview;
         private PictureSampler yellowPreview;
         private PictureSampler blackPreview;
+
+        private Slider sSlider;
+        private Slider circlesSlider;
         #endregion Controls
 
         #region Initialize
@@ -39,12 +43,14 @@ namespace ColorSeparator
 
             this.charter = new(FormConstants.ChartMargin) { Dock= DockStyle.Top };
             this.charter.SelectCurve(CurveId.Cyan);
+            this.imageGenerator = new();
             this.imageMng = new();
             this.imagePreview = new();
             this.cyanPreview = new(this.imageMng, CurveId.Cyan);
             this.magentaPreview = new(this.imageMng, CurveId.Magenta);
             this.yellowPreview = new(this.imageMng, CurveId.Yellow);
             this.blackPreview = new(this.imageMng, CurveId.Black);
+            this.imageGenerator.Subscribe(this.imagePreview, this.cyanPreview, this.magentaPreview, this.yellowPreview, this.blackPreview);
             this.imageMng.InitializeWithChart(this.charter);
         }
 
@@ -71,6 +77,28 @@ namespace ColorSeparator
             this.toolbar.AddLabel(Labels.ImageSection);
             this.toolbar.AddButton(LoadImageHandler, Glyphs.File, Hints.OpenImage);
             this.toolbar.AddButton(SaveImagesHandler, Glyphs.Save, Hints.SaveImages);
+            this.toolbar.AddOption(GenerateImageHandler, Labels.CirclesOption, Hints.GenerateHSV);
+            this.sSlider = this.toolbar.AddSlider(SParameterSliderHandler, Labels.SParamSlider, 0.5f);
+            this.circlesSlider = this.toolbar.AddSlider(CirclesCountHandler, Labels.CirclesCount, 0.3f);
+            this.sSlider.Enabled = false;
+            this.circlesSlider.Enabled = false;
+        }
+
+        private void CirclesCountHandler(float value)
+        {
+            this.imageGenerator.CirclesCount = Math.Max(FormConstants.MinCirclesCount, (int)(value * FormConstants.MaxCirclesCount));
+        }
+
+        private void SParameterSliderHandler(float value)
+        {
+            this.imageGenerator.SParameter = value;
+        }
+
+        private void GenerateImageHandler(object? sender, EventArgs e)
+        {
+            this.imageGenerator.Enabled = !this.imageGenerator.Enabled;
+            this.sSlider.Enabled = this.imageGenerator.Enabled;
+            this.circlesSlider.Enabled = this.imageGenerator.Enabled;
         }
 
         private void ComboApplyHandler(CurveSample obj)

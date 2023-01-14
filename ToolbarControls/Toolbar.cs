@@ -86,11 +86,12 @@ namespace SurfaceFiller.Components
             slider.Value = defaultValue;
         }
 
-        public void AddSlider(Action<float> handler, string labelText, float defaultValue = 0)
+        public Slider AddSlider(Action<float> handler, string labelText, float defaultValue = 0)
         {
             var slider = AddSlider<PercentageSlider>(labelText);
             slider.ValueChanged += handler;
             slider.Value = defaultValue;
+            return slider;
         }
 
         public void AddPlayPouse(Action<bool> handler, bool defaultState, string? hint = null)

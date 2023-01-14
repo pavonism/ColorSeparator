@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace ColorSeparator
 {
 
@@ -12,11 +7,13 @@ namespace ColorSeparator
         public const int MinimumHeight = 500;
         public const int MinimumWidth = 500;
         public const int InitialWidth = 900;
-        public const int InitialHeight = 750;
+        public const int InitialHeight = 800;
 
         public const int MainFormColumnCount = 2;
         public const int ChartSize = 500;
         public const int ChartMargin = 10;
+        public const int MaxCirclesCount = 24;
+        public const int MinCirclesCount = 8;
     }
 
     public static class Resources
@@ -33,6 +30,7 @@ namespace ColorSeparator
         public const string Image = "\U0001F5BC";
         public const string Chart = "\U0001F4C8";
         public const string Reset = "\U0001F504";
+        public const string Generate = "\U00002B55";
     }
 
     public static class Labels
@@ -43,6 +41,9 @@ namespace ColorSeparator
         public const string Yellow = "Yellow";
         public const string Black = "Black";
         public const string ShowAllCurves = "Show all curves";
+        public const string CirclesOption = "Generate HSV Circles";
+        public const string SParamSlider = "S";
+        public const string CirclesCount = "Count";
     }
 
     public static class Hints 
@@ -54,5 +55,6 @@ namespace ColorSeparator
         public const string ShowAllCurves = "Wyświetl na wykresie wszystkie krzywe";
         public const string SaveImages = "Zapisz obrazy CMYK";
         public const string ApplyCurve = "Ustaw krzywą Gray Ramp";
+        public const string GenerateHSV = "Wygeneruj obraz HSV";
     }
 }
